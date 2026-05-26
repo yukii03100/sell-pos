@@ -699,7 +699,7 @@
             <input id="priceInput" inputmode="numeric" min="1" required type="number" placeholder="150" />
           </label>
           <label>成本
-            <input id="costInput" inputmode="numeric" min="0" required type="number" placeholder="60" />
+            <input id="costInput" inputmode="numeric" min="0" type="number" placeholder="可不填" />
           </label>
           <label>初始庫存
             <input id="stockInput" inputmode="numeric" min="0" required type="number" placeholder="20" />
@@ -1082,11 +1082,12 @@
       const owner = document.getElementById("ownerInput").value.trim();
       const name = document.getElementById("nameInput").value.trim();
       const price = Number(document.getElementById("priceInput").value);
-      const cost = Number(document.getElementById("costInput").value);
+      const costValue = document.getElementById("costInput").value;
+      const cost = costValue === "" ? 0 : Number(costValue);
       const stock = Number(document.getElementById("stockInput").value);
       const imageFile = document.getElementById("imageInput").files[0];
 
-      if (!owner || !name || price <= 0 || cost < 0 || stock < 0) {
+      if (!owner || !name || price <= 0 || Number.isNaN(cost) || cost < 0 || stock < 0) {
         alert("請確認商品資料都有填好。");
         return;
       }
