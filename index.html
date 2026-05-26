@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>擺攤分帳 POS</title>
+  <style>
+    :root {
+      --ink: #20242a;
+      --muted: #756872;
+      --line: #f4dce5;
+      --paper: #ffffff;
+      --wash: #fffafb;
+      --brand: #e78aaa;
+      --brand-dark: #cf5f86;
+      --good: #bf5f85;
+      --warn: #b45309;
+      --bad: #b42318;
+      --teal: #bf5f85;
+      --shadow: 0 10px 24px rgba(156, 112, 128, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Noto Sans TC", "Microsoft JhengHei", Arial, sans-serif;
+      background: var(--wash);
+      color: var(--ink);
+    }
+
+    header {
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+      color: var(--ink);
+      padding: 22px 20px;
+    }
+
+    .header-inner {
+      align-items: center;
+      display: flex;
+      gap: 18px;
+      justify-content: space-between;
+      margin: 0 auto;
+      max-width: 1180px;
+    }
+
+    .header-actions {
+      align-items: center;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .share-link {
+      max-width: 280px;
+    }
+
+    h1 {
+      font-size: clamp(24px, 4vw, 36px);
+      letter-spacing: 0;
+      margin: 0;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      margin: 6px 0 0;
+    }
+
+    main {
+      margin: 0 auto;
+      max-width: 1180px;
+      padding: 18px 20px 40px;
+    }
+
+    .tabs {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      display: grid;
+      gap: 4px;
+      grid-template-columns: repeat(3, 1fr);
+      margin: 0 0 18px;
+      padding: 4px;
+    }
+
+    .lobby {
+      display: grid;
+      gap: 18px;
+      grid-template-columns: minmax(0, 1fr) minmax(300px, 420px);
+    }
+
+    .lobby-copy {
+      align-content: center;
+      display: grid;
+      gap: 14px;
+      min-height: 380px;
+    }
+
+    .lobby-copy h2 {
+      font-size: clamp(30px, 5vw, 52px);
+      line-height: 1.08;
+    }
+
+    .lobby-copy p {
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.7;
+      margin: 0;
+      max-width: 640px;
+    }
+
+    .lobby-actions {
+      display: grid;
+      gap: 14px;
+    }
+
+    .lobby-card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      display: grid;
+      gap: 12px;
+      padding: 18px;
+    }
+
+    .lobby-card h3 {
+      font-size: 19px;
+      margin: 0;
+    }
+
+    .feature-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .feature-list span {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .tab-button {
+      background: transparent;
+      border: 0;
+      border-radius: 6px;
+      color: #7b6d75;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 700;
+      min-height: 42px;
+      padding: 10px;
+    }
+
+    .tab-button.active {
+      background: #fff3f7;
+      box-shadow: none;
+      color: var(--brand-dark);
+    }
+
+    .tab-panel {
+      display: none;
+    }
+
+    .tab-panel.active {
+      display: block;
+    }
+
+    .metrics {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      margin-bottom: 18px;
+    }
+
+    .metric,
+    .panel,
+    .product-card,
+    .settlement-row,
+    .expense-row {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .metric {
+      padding: 14px;
+    }
+
+    .metric span {
+      color: var(--muted);
+      display: block;
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+
+    .metric strong {
+      font-size: 24px;
+    }
+
+    .workbench {
+      display: grid;
+      gap: 18px;
+      grid-template-columns: minmax(0, 1fr) 360px;
+    }
+
+    .panel {
+      padding: 16px;
+    }
+
+    .section-title {
+      align-items: center;
+      display: flex;
+      gap: 10px;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    h2 {
+      font-size: 20px;
+      margin: 0;
+    }
+
+    .product-grid {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    }
+
+    .product-card {
+      display: grid;
+      gap: 12px;
+      padding: 14px;
+    }
+
+    .product-photo,
+    .photo-placeholder {
+      align-items: center;
+      aspect-ratio: 4 / 3;
+      border-radius: 8px;
+      display: flex;
+      justify-content: center;
+      overflow: hidden;
+      width: 100%;
+    }
+
+    .product-photo {
+      background: #fff4f8;
+      border: 1px solid var(--line);
+      object-fit: cover;
+    }
+
+    .photo-placeholder {
+      background: #fff4f8;
+      border: 1px dashed #e8c2cf;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .thumb {
+      aspect-ratio: 1;
+      background: #fff4f8;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      height: 48px;
+      object-fit: cover;
+      width: 48px;
+    }
+
+    .thumb-placeholder {
+      align-items: center;
+      aspect-ratio: 1;
+      background: #fff4f8;
+      border: 1px dashed #e8c2cf;
+      border-radius: 6px;
+      color: var(--muted);
+      display: inline-flex;
+      font-size: 12px;
+      height: 48px;
+      justify-content: center;
+      width: 48px;
+    }
+
+    .product-card.disabled {
+      opacity: 0.55;
+    }
+
+    .product-title {
+      align-items: start;
+      display: flex;
+      justify-content: space-between;
+      min-height: 52px;
+    }
+
+    .product-title h3 {
+      font-size: 17px;
+      margin: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .tag {
+      background: #fff1f6;
+      border-radius: 999px;
+      color: #b55378;
+      display: inline-flex;
+      flex: 0 0 auto;
+      font-size: 12px;
+      font-weight: 700;
+      max-width: 110px;
+      overflow: hidden;
+      padding: 4px 8px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .detail {
+      color: var(--muted);
+      display: grid;
+      font-size: 14px;
+      gap: 5px;
+    }
+
+    .row {
+      align-items: center;
+      display: flex;
+      gap: 8px;
+      justify-content: space-between;
+    }
+
+    .cart-items {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 14px;
+      max-height: 380px;
+      overflow: auto;
+      padding-right: 2px;
+    }
+
+    .cart-line {
+      border-bottom: 1px solid var(--line);
+      display: grid;
+      gap: 7px;
+      padding-bottom: 10px;
+    }
+
+    .cart-line:last-child {
+      border-bottom: 0;
+    }
+
+    .qty {
+      align-items: center;
+      display: flex;
+      gap: 6px;
+    }
+
+    button {
+      align-items: center;
+      border: 0;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      font: inherit;
+      font-weight: 700;
+      justify-content: center;
+      min-height: 38px;
+      padding: 8px 12px;
+    }
+
+    button.primary {
+      background: var(--brand);
+      color: #fff;
+    }
+
+    button.primary:hover {
+      background: var(--brand-dark);
+    }
+
+    button.secondary {
+      background: #fff4f8;
+      color: #a65374;
+    }
+
+    button.success {
+      background: #d87399;
+      color: #fff;
+    }
+
+    button.warning {
+      background: #fff1e6;
+      color: var(--warn);
+    }
+
+    button.danger {
+      background: #fff0f0;
+      color: var(--bad);
+    }
+
+    button.icon {
+      aspect-ratio: 1;
+      min-height: 34px;
+      padding: 0;
+      width: 34px;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.45;
+    }
+
+    .total-box {
+      background: #fffafb;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      display: grid;
+      gap: 8px;
+      margin: 12px 0;
+      padding: 12px;
+    }
+
+    .total-box strong {
+      font-size: 26px;
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+
+    label {
+      color: #665962;
+      display: grid;
+      font-size: 13px;
+      font-weight: 700;
+      gap: 6px;
+    }
+
+    input,
+    select {
+      background: #fff;
+      border: 1px solid #efd4de;
+      border-radius: 6px;
+      color: var(--ink);
+      font: inherit;
+      min-height: 40px;
+      padding: 8px 10px;
+      width: 100%;
+    }
+
+    input[type="file"] {
+      padding: 7px;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      border-collapse: collapse;
+      min-width: 760px;
+      width: 100%;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid var(--line);
+      padding: 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #fff7fa;
+      color: #665962;
+      font-size: 13px;
+    }
+
+    .stack {
+      display: grid;
+      gap: 14px;
+    }
+
+    .two-col {
+      display: grid;
+      gap: 18px;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .settlement-row,
+    .expense-row {
+      display: grid;
+      gap: 8px;
+      padding: 14px;
+    }
+
+    .settlement-row strong,
+    .expense-row strong {
+      font-size: 18px;
+    }
+
+    .money-good {
+      color: var(--good);
+      font-weight: 800;
+    }
+
+    .money-bad {
+      color: var(--bad);
+      font-weight: 800;
+    }
+
+    .empty {
+      border: 1px dashed #e8c2cf;
+      border-radius: 8px;
+      color: var(--muted);
+      padding: 18px;
+      text-align: center;
+    }
+
+    .owner-filter {
+      max-width: 220px;
+    }
+
+    .history {
+      max-height: 280px;
+      overflow: auto;
+    }
+
+    @media (max-width: 900px) {
+      .metrics,
+      .form-grid,
+      .lobby,
+      .two-col,
+      .workbench {
+        grid-template-columns: 1fr;
+      }
+
+      .header-inner {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .tabs {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div>
+        <h1>擺攤分帳 POS</h1>
+        <p class="subtitle" id="headerSubtitle">商品上架、點餐結帳、庫存追蹤、分潤與代墊一次算清楚。</p>
+      </div>
+      <div class="header-actions" id="headerActions">
+        <input class="share-link" id="shareLinkInput" readonly aria-label="共編連結" />
+        <button class="secondary" id="copyShareBtn" type="button">複製共編連結</button>
+        <button class="secondary" id="leaveBoothBtn" type="button">回到首頁</button>
+        <button class="secondary" id="exportBtn" type="button">匯出資料</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="lobby" id="lobby">
+      <div class="lobby-copy">
+        <h2>給合攤攤主用的輕量 POS 與分帳工具</h2>
+        <p>建立一場擺攤後，把共編連結傳給一起擺攤的人。大家可以用同一場資料上架商品、記銷售、看庫存，最後把代墊和分帳算清楚。</p>
+        <div class="feature-list">
+          <span>共同商品頁：所有攤主的商品集中點餐結帳</span>
+          <span>每人商品管理：圖片、售價、成本、庫存各自記錄</span>
+          <span>結束後分帳：營收、毛利、代墊、應收應付自動整理</span>
+        </div>
+      </div>
+
+      <div class="lobby-actions">
+        <form class="lobby-card" id="createBoothForm">
+          <h3>建立新的擺攤</h3>
+          <label>擺攤名稱
+            <input id="boothNameInput" required placeholder="例如：5/26 文創市集" />
+          </label>
+          <button class="primary" type="submit">建立共編連結</button>
+        </form>
+
+        <form class="lobby-card" id="joinBoothForm">
+          <h3>加入別人的擺攤</h3>
+          <label>貼上共編連結或代碼
+            <input id="joinBoothInput" required placeholder="例如：booth-ab12cd 或完整網址" />
+          </label>
+          <button class="secondary" type="submit">加入擺攤</button>
+        </form>
+      </div>
+    </section>
+
+    <div id="appShell">
+      <nav class="tabs" aria-label="主要功能">
+        <button class="tab-button active" data-tab="pos" type="button">點餐結帳</button>
+        <button class="tab-button" data-tab="products" type="button">商品與庫存</button>
+        <button class="tab-button" data-tab="settlement" type="button">結算與代墊</button>
+      </nav>
+
+      <section class="metrics" aria-label="總覽">
+        <div class="metric"><span>今日營收</span><strong id="metricRevenue">$0</strong></div>
+        <div class="metric"><span>已售件數</span><strong id="metricSold">0</strong></div>
+        <div class="metric"><span>剩餘庫存</span><strong id="metricStock">0</strong></div>
+        <div class="metric"><span>待處理代墊</span><strong id="metricExpenses">$0</strong></div>
+      </section>
+
+      <section class="tab-panel active" id="tab-pos">
+      <div class="workbench">
+        <div class="panel">
+          <div class="section-title">
+            <h2>全部商品</h2>
+            <select class="owner-filter" id="posOwnerFilter" aria-label="依上架者篩選"></select>
+          </div>
+          <div class="product-grid" id="posProductList"></div>
+        </div>
+
+        <aside class="panel">
+          <div class="section-title">
+            <h2>本次結帳</h2>
+            <button class="secondary" id="clearCartBtn" type="button">清空</button>
+          </div>
+          <div class="cart-items" id="cartItems"></div>
+          <div class="total-box">
+            <span>總金額</span>
+            <strong id="cartTotal">$0</strong>
+          </div>
+          <button class="success" id="checkoutBtn" type="button">完成結帳</button>
+        </aside>
+      </div>
+      </section>
+
+      <section class="tab-panel" id="tab-products">
+      <div class="panel stack">
+        <div class="section-title">
+          <h2>新增商品</h2>
+        </div>
+        <form class="form-grid" id="productForm">
+          <label>上架者
+            <input id="ownerInput" autocomplete="off" required placeholder="例如：Yuki" />
+          </label>
+          <label>商品名稱
+            <input id="nameInput" autocomplete="off" required placeholder="例如：手作餅乾" />
+          </label>
+          <label>售價
+            <input id="priceInput" inputmode="numeric" min="1" required type="number" placeholder="150" />
+          </label>
+          <label>成本
+            <input id="costInput" inputmode="numeric" min="0" required type="number" placeholder="60" />
+          </label>
+          <label>初始庫存
+            <input id="stockInput" inputmode="numeric" min="0" required type="number" placeholder="20" />
+          </label>
+          <label>商品圖片
+            <input id="imageInput" accept="image/*" type="file" />
+          </label>
+          <button class="primary" type="submit">上架商品</button>
+        </form>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>上架者</th>
+                <th>圖片</th>
+                <th>商品</th>
+                <th>售價</th>
+                <th>成本</th>
+                <th>已售</th>
+                <th>剩餘</th>
+                <th>金額</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="inventoryTable"></tbody>
+          </table>
+        </div>
+      </div>
+      </section>
+
+      <section class="tab-panel" id="tab-settlement">
+      <div class="two-col">
+        <div class="panel stack">
+          <div class="section-title">
+            <h2>代墊紀錄</h2>
+          </div>
+          <form class="stack" id="expenseForm">
+            <label>代墊人
+              <input id="expensePayerInput" autocomplete="off" required placeholder="誰先付了錢" />
+            </label>
+            <label>用途
+              <input id="expenseNoteInput" autocomplete="off" required placeholder="例如：攤位費、冰塊、包材" />
+            </label>
+            <label>金額
+              <input id="expenseAmountInput" inputmode="numeric" min="1" required type="number" placeholder="500" />
+            </label>
+            <button class="primary" type="submit">加入代墊</button>
+          </form>
+          <div class="history" id="expenseList"></div>
+        </div>
+
+        <div class="panel stack">
+          <div class="section-title">
+            <h2>分帳結果</h2>
+          </div>
+          <div id="settlementList"></div>
+        </div>
+      </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const BASE_STORAGE_KEY = "booth-pos-v2";
+    const CURRENT_BOOTH_KEY = "booth-pos-current-booth";
+    const boothParams = new URLSearchParams(window.location.search);
+    let boothId = boothParams.get("booth") || localStorage.getItem(CURRENT_BOOTH_KEY) || "";
+
+    const legacyProducts = JSON.parse(localStorage.getItem("boothProducts") || "[]");
+
+    function createDefaultState(name = "未命名擺攤", includeLegacy = false) {
+      return {
+        meta: {
+          id: boothId,
+          name,
+          createdAt: new Date().toISOString()
+        },
+        products: includeLegacy ? legacyProducts.map((product) => ({
+          id: product.id || crypto.randomUUID(),
+          owner: product.owner,
+          name: product.name,
+          price: Number(product.price) || 0,
+          cost: Number(product.cost) || 0,
+          initialStock: (Number(product.stock) || 0) + (Number(product.sold) || 0),
+          stock: Number(product.stock) || 0,
+          sold: Number(product.sold) || 0,
+          image: product.image || ""
+        })) : [],
+        cart: {},
+        expenses: [],
+        sales: []
+      };
+    }
+
+    function storageKey() {
+      return `${BASE_STORAGE_KEY}-${boothId}`;
+    }
+
+    function loadState() {
+      if (!boothId) return createDefaultState();
+      const saved = JSON.parse(localStorage.getItem(storageKey()) || "null");
+      if (saved) {
+        saved.meta = saved.meta || { id: boothId, name: "未命名擺攤", createdAt: new Date().toISOString() };
+        saved.meta.id = boothId;
+        saved.products = saved.products || [];
+        saved.cart = saved.cart || {};
+        saved.expenses = saved.expenses || [];
+        saved.sales = saved.sales || [];
+        return saved;
+      }
+      return createDefaultState("共編擺攤");
+    }
+
+    let state = loadState();
+
+    const money = new Intl.NumberFormat("zh-TW", {
+      currency: "TWD",
+      maximumFractionDigits: 0,
+      style: "currency"
+    });
+
+    const el = {
+      tabs: document.querySelectorAll(".tab-button"),
+      panels: document.querySelectorAll(".tab-panel"),
+      posOwnerFilter: document.getElementById("posOwnerFilter"),
+      posProductList: document.getElementById("posProductList"),
+      cartItems: document.getElementById("cartItems"),
+      cartTotal: document.getElementById("cartTotal"),
+      checkoutBtn: document.getElementById("checkoutBtn"),
+      clearCartBtn: document.getElementById("clearCartBtn"),
+      productForm: document.getElementById("productForm"),
+      inventoryTable: document.getElementById("inventoryTable"),
+      expenseForm: document.getElementById("expenseForm"),
+      expenseList: document.getElementById("expenseList"),
+      settlementList: document.getElementById("settlementList"),
+      metricRevenue: document.getElementById("metricRevenue"),
+      metricSold: document.getElementById("metricSold"),
+      metricStock: document.getElementById("metricStock"),
+      metricExpenses: document.getElementById("metricExpenses"),
+      exportBtn: document.getElementById("exportBtn"),
+      lobby: document.getElementById("lobby"),
+      appShell: document.getElementById("appShell"),
+      headerActions: document.getElementById("headerActions"),
+      headerSubtitle: document.getElementById("headerSubtitle"),
+      shareLinkInput: document.getElementById("shareLinkInput"),
+      copyShareBtn: document.getElementById("copyShareBtn"),
+      leaveBoothBtn: document.getElementById("leaveBoothBtn"),
+      createBoothForm: document.getElementById("createBoothForm"),
+      joinBoothForm: document.getElementById("joinBoothForm")
+    };
+
+    function save() {
+      if (!boothId) return;
+      localStorage.setItem(storageKey(), JSON.stringify(state));
+      localStorage.setItem(CURRENT_BOOTH_KEY, boothId);
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function fileToDataUrl(file) {
+      return new Promise((resolve, reject) => {
+        if (!file) {
+          resolve("");
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.addEventListener("load", () => resolve(reader.result));
+        reader.addEventListener("error", () => reject(reader.error));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function productImage(product, className = "product-photo") {
+      if (!product.image) {
+        return `<div class="${className === "thumb" ? "thumb-placeholder" : "photo-placeholder"}">無圖片</div>`;
+      }
+
+      return `<img class="${className}" src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}" />`;
+    }
+
+    function generateBoothId() {
+      const part = crypto.randomUUID().slice(0, 8);
+      return `booth-${part}`;
+    }
+
+    function boothShareUrl() {
+      if (!boothId) return "";
+      const url = new URL(window.location.href);
+      url.searchParams.set("booth", boothId);
+      return url.toString();
+    }
+
+    function parseBoothInput(value) {
+      const trimmed = value.trim();
+      if (!trimmed) return "";
+
+      try {
+        const url = new URL(trimmed);
+        return url.searchParams.get("booth") || "";
+      } catch {
+        return trimmed.replace(/[^\w-]/g, "");
+      }
+    }
+
+    function enterBooth(nextBoothId, name = "共編擺攤", createFresh = false) {
+      boothId = nextBoothId;
+      const url = new URL(window.location.href);
+      url.searchParams.set("booth", boothId);
+      window.history.pushState({}, "", url);
+      localStorage.setItem(CURRENT_BOOTH_KEY, boothId);
+      state = createFresh ? createDefaultState(name) : loadState();
+      state.meta = state.meta || {};
+      state.meta.id = boothId;
+      state.meta.name = state.meta.name || name;
+      save();
+      render();
+    }
+
+    function createBooth(event) {
+      event.preventDefault();
+      const name = document.getElementById("boothNameInput").value.trim() || "未命名擺攤";
+      enterBooth(generateBoothId(), name, true);
+    }
+
+    function joinBooth(event) {
+      event.preventDefault();
+      const id = parseBoothInput(document.getElementById("joinBoothInput").value);
+      if (!id) {
+        alert("請貼上共編連結或擺攤代碼。");
+        return;
+      }
+      enterBooth(id);
+    }
+
+    function leaveBooth() {
+      localStorage.removeItem(CURRENT_BOOTH_KEY);
+      boothId = "";
+      state = createDefaultState();
+      const url = new URL(window.location.href);
+      url.searchParams.delete("booth");
+      window.history.pushState({}, "", url);
+      render();
+    }
+
+    async function copyShareLink() {
+      const link = boothShareUrl();
+      el.shareLinkInput.value = link;
+      el.shareLinkInput.select();
+
+      try {
+        await navigator.clipboard.writeText(link);
+        el.copyShareBtn.textContent = "已複製";
+      } catch {
+        el.copyShareBtn.textContent = "請手動複製";
+      }
+
+      window.setTimeout(() => {
+        el.copyShareBtn.textContent = "複製共編連結";
+      }, 1600);
+    }
+
+    function ownerNames() {
+      return [...new Set([
+        ...state.products.map((product) => product.owner),
+        ...state.expenses.map((expense) => expense.payer)
+      ])].filter(Boolean).sort((a, b) => a.localeCompare(b, "zh-Hant"));
+    }
+
+    function getProduct(id) {
+      return state.products.find((product) => product.id === id);
+    }
+
+    function cartQuantity(id) {
+      return Number(state.cart[id] || 0);
+    }
+
+    function cartEntries() {
+      return Object.entries(state.cart)
+        .map(([id, qty]) => ({ product: getProduct(id), qty: Number(qty) }))
+        .filter((item) => item.product && item.qty > 0);
+    }
+
+    function cartTotal() {
+      return cartEntries().reduce((sum, item) => sum + item.product.price * item.qty, 0);
+    }
+
+    function addToCart(id) {
+      const product = getProduct(id);
+      if (!product || cartQuantity(id) >= product.stock) return;
+      state.cart[id] = cartQuantity(id) + 1;
+      save();
+      render();
+    }
+
+    function reduceCart(id) {
+      const nextQty = cartQuantity(id) - 1;
+      if (nextQty <= 0) {
+        delete state.cart[id];
+      } else {
+        state.cart[id] = nextQty;
+      }
+      save();
+      render();
+    }
+
+    function clearCart() {
+      state.cart = {};
+      save();
+      render();
+    }
+
+    function checkout() {
+      const items = cartEntries();
+      if (!items.length) return;
+
+      items.forEach((item) => {
+        item.product.stock -= item.qty;
+        item.product.sold += item.qty;
+      });
+
+      state.sales.push({
+        id: crypto.randomUUID(),
+        at: new Date().toISOString(),
+        items: items.map((item) => ({
+          productId: item.product.id,
+          name: item.product.name,
+          owner: item.product.owner,
+          qty: item.qty,
+          price: item.product.price,
+          cost: item.product.cost
+        })),
+        total: cartTotal()
+      });
+      state.cart = {};
+      save();
+      render();
+    }
+
+    async function addProduct(event) {
+      event.preventDefault();
+      const owner = document.getElementById("ownerInput").value.trim();
+      const name = document.getElementById("nameInput").value.trim();
+      const price = Number(document.getElementById("priceInput").value);
+      const cost = Number(document.getElementById("costInput").value);
+      const stock = Number(document.getElementById("stockInput").value);
+      const imageFile = document.getElementById("imageInput").files[0];
+
+      if (!owner || !name || price <= 0 || cost < 0 || stock < 0) {
+        alert("請確認商品資料都有填好。");
+        return;
+      }
+
+      let image = "";
+      try {
+        image = await fileToDataUrl(imageFile);
+      } catch {
+        alert("圖片讀取失敗，請換一張圖片試試。");
+        return;
+      }
+
+      state.products.push({
+        id: crypto.randomUUID(),
+        owner,
+        name,
+        price,
+        cost,
+        initialStock: stock,
+        stock,
+        sold: 0,
+        image
+      });
+
+      event.target.reset();
+      document.getElementById("ownerInput").value = owner;
+      save();
+      render();
+    }
+
+    function updateStock(id, delta) {
+      const product = getProduct(id);
+      if (!product) return;
+      const nextStock = product.stock + delta;
+      if (nextStock < 0) return;
+      product.stock = nextStock;
+      product.initialStock += delta;
+      save();
+      render();
+    }
+
+    function undoSold(id) {
+      const product = getProduct(id);
+      if (!product || product.sold <= 0) return;
+      product.sold -= 1;
+      product.stock += 1;
+      save();
+      render();
+    }
+
+    function deleteProduct(id) {
+      const product = getProduct(id);
+      if (!product) return;
+      if (product.sold > 0 && !confirm("這個商品已經有銷售紀錄，刪除後結算也會移除它。確定刪除嗎？")) return;
+      state.products = state.products.filter((item) => item.id !== id);
+      delete state.cart[id];
+      save();
+      render();
+    }
+
+    function addExpense(event) {
+      event.preventDefault();
+      const payer = document.getElementById("expensePayerInput").value.trim();
+      const note = document.getElementById("expenseNoteInput").value.trim();
+      const amount = Number(document.getElementById("expenseAmountInput").value);
+
+      if (!payer || !note || amount <= 0) {
+        alert("請確認代墊資料都有填好。");
+        return;
+      }
+
+      state.expenses.push({
+        id: crypto.randomUUID(),
+        payer,
+        note,
+        amount,
+        at: new Date().toISOString()
+      });
+
+      event.target.reset();
+      document.getElementById("expensePayerInput").value = payer;
+      save();
+      render();
+    }
+
+    function deleteExpense(id) {
+      state.expenses = state.expenses.filter((expense) => expense.id !== id);
+      save();
+      render();
+    }
+
+    function settlementByOwner() {
+      const owners = ownerNames();
+      const summary = Object.fromEntries(owners.map((owner) => [owner, {
+        revenue: 0,
+        cost: 0,
+        profit: 0,
+        sold: 0,
+        stockValue: 0,
+        paid: 0,
+        expenseShare: 0,
+        net: 0
+      }]));
+
+      state.products.forEach((product) => {
+        if (!summary[product.owner]) {
+          summary[product.owner] = { revenue: 0, cost: 0, profit: 0, sold: 0, stockValue: 0, paid: 0, expenseShare: 0, net: 0 };
+        }
+        summary[product.owner].revenue += product.price * product.sold;
+        summary[product.owner].cost += product.cost * product.sold;
+        summary[product.owner].profit += (product.price - product.cost) * product.sold;
+        summary[product.owner].sold += product.sold;
+        summary[product.owner].stockValue += product.price * product.stock;
+      });
+
+      state.expenses.forEach((expense) => {
+        if (!summary[expense.payer]) {
+          summary[expense.payer] = { revenue: 0, cost: 0, profit: 0, sold: 0, stockValue: 0, paid: 0, expenseShare: 0, net: 0 };
+        }
+        summary[expense.payer].paid += expense.amount;
+      });
+
+      const activeOwners = Object.keys(summary);
+      const totalExpenses = state.expenses.reduce((sum, expense) => sum + expense.amount, 0);
+      const share = activeOwners.length ? totalExpenses / activeOwners.length : 0;
+
+      activeOwners.forEach((owner) => {
+        summary[owner].expenseShare = share;
+        summary[owner].net = summary[owner].profit + summary[owner].paid - share;
+      });
+
+      return summary;
+    }
+
+    function renderTabs() {
+      el.tabs.forEach((button) => {
+        button.addEventListener("click", () => {
+          el.tabs.forEach((tab) => tab.classList.remove("active"));
+          el.panels.forEach((panel) => panel.classList.remove("active"));
+          button.classList.add("active");
+          document.getElementById(`tab-${button.dataset.tab}`).classList.add("active");
+        });
+      });
+    }
+
+    function renderOwnerFilter() {
+      const selected = el.posOwnerFilter.value || "all";
+      el.posOwnerFilter.innerHTML = `<option value="all">全部上架者</option>${ownerNames().map((owner) => `<option value="${escapeHtml(owner)}">${escapeHtml(owner)}</option>`).join("")}`;
+      el.posOwnerFilter.value = [...el.posOwnerFilter.options].some((option) => option.value === selected) ? selected : "all";
+    }
+
+    function renderPosProducts() {
+      const owner = el.posOwnerFilter.value || "all";
+      const products = state.products.filter((product) => owner === "all" || product.owner === owner);
+
+      if (!products.length) {
+        el.posProductList.innerHTML = `<div class="empty">還沒有商品，先到「商品與庫存」上架。</div>`;
+        return;
+      }
+
+      el.posProductList.innerHTML = products.map((product) => {
+        const remaining = product.stock - cartQuantity(product.id);
+        return `
+          <article class="product-card ${remaining <= 0 ? "disabled" : ""}">
+            ${productImage(product)}
+            <div class="product-title">
+              <h3>${escapeHtml(product.name)}</h3>
+              <span class="tag">${escapeHtml(product.owner)}</span>
+            </div>
+            <div class="detail">
+              <span>售價 ${money.format(product.price)}</span>
+              <span>可售 ${Math.max(remaining, 0)} 件，已售 ${product.sold} 件</span>
+            </div>
+            <button class="primary" type="button" onclick="addToCart('${product.id}')" ${remaining <= 0 ? "disabled" : ""}>加入</button>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function renderCart() {
+      const items = cartEntries();
+      if (!items.length) {
+        el.cartItems.innerHTML = `<div class="empty">點商品後會出現在這裡。</div>`;
+      } else {
+        el.cartItems.innerHTML = items.map((item) => `
+          <div class="cart-line">
+            <div class="row">
+              <strong>${item.product.name}</strong>
+              <span>${money.format(item.product.price * item.qty)}</span>
+            </div>
+            <div class="row">
+              <span class="tag">${escapeHtml(item.product.owner)}</span>
+              <div class="qty">
+                <button class="secondary icon" type="button" onclick="reduceCart('${item.product.id}')" aria-label="減少">-</button>
+                <strong>${item.qty}</strong>
+                <button class="secondary icon" type="button" onclick="addToCart('${item.product.id}')" aria-label="增加">+</button>
+              </div>
+            </div>
+          </div>
+        `).join("");
+      }
+      el.cartTotal.textContent = money.format(cartTotal());
+      el.checkoutBtn.disabled = !items.length;
+    }
+
+    function renderInventory() {
+      if (!state.products.length) {
+        el.inventoryTable.innerHTML = `<tr><td colspan="9">尚未上架商品。</td></tr>`;
+        return;
+      }
+
+      el.inventoryTable.innerHTML = state.products.map((product) => `
+        <tr>
+          <td>${escapeHtml(product.owner)}</td>
+          <td>${productImage(product, "thumb")}</td>
+          <td>${escapeHtml(product.name)}</td>
+          <td>${money.format(product.price)}</td>
+          <td>${money.format(product.cost)}</td>
+          <td>${product.sold}</td>
+          <td>${product.stock}</td>
+          <td>${money.format(product.price * product.sold)}</td>
+          <td>
+            <button class="secondary icon" type="button" onclick="updateStock('${product.id}', 1)" aria-label="補庫存">+</button>
+            <button class="warning icon" type="button" onclick="undoSold('${product.id}')" aria-label="退一件">↩</button>
+            <button class="danger icon" type="button" onclick="deleteProduct('${product.id}')" aria-label="刪除">×</button>
+          </td>
+        </tr>
+      `).join("");
+    }
+
+    function renderExpenses() {
+      if (!state.expenses.length) {
+        el.expenseList.innerHTML = `<div class="empty">擺攤中的攤位費、材料費、臨時採買都可以記在這裡。</div>`;
+        return;
+      }
+
+      el.expenseList.innerHTML = state.expenses.map((expense) => `
+        <div class="expense-row">
+          <div class="row">
+            <strong>${escapeHtml(expense.payer)}</strong>
+            <span>${money.format(expense.amount)}</span>
+          </div>
+          <span>${escapeHtml(expense.note)}</span>
+          <div class="row">
+            <small>${new Date(expense.at).toLocaleString("zh-TW")}</small>
+            <button class="danger" type="button" onclick="deleteExpense('${expense.id}')">刪除</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function renderSettlement() {
+      const summary = settlementByOwner();
+      const owners = Object.keys(summary);
+
+      if (!owners.length) {
+        el.settlementList.innerHTML = `<div class="empty">上架商品或加入代墊後，這裡會自動算分帳。</div>`;
+        return;
+      }
+
+      el.settlementList.innerHTML = owners.map((owner) => {
+        const item = summary[owner];
+        const netClass = item.net >= 0 ? "money-good" : "money-bad";
+        const action = item.net >= 0 ? "應拿回" : "應支付";
+        return `
+          <div class="settlement-row">
+            <div class="row">
+              <strong>${escapeHtml(owner)}</strong>
+              <span class="${netClass}">${action} ${money.format(Math.abs(item.net))}</span>
+            </div>
+            <div class="detail">
+              <span>售出 ${item.sold} 件，營收 ${money.format(item.revenue)}，成本 ${money.format(item.cost)}，毛利 ${money.format(item.profit)}</span>
+              <span>代墊 ${money.format(item.paid)}，共同代墊分攤 ${money.format(item.expenseShare)}</span>
+              <span>剩餘庫存售價估值 ${money.format(item.stockValue)}</span>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderMetrics() {
+      const revenue = state.products.reduce((sum, product) => sum + product.price * product.sold, 0);
+      const sold = state.products.reduce((sum, product) => sum + product.sold, 0);
+      const stock = state.products.reduce((sum, product) => sum + product.stock, 0);
+      const expenses = state.expenses.reduce((sum, expense) => sum + expense.amount, 0);
+      el.metricRevenue.textContent = money.format(revenue);
+      el.metricSold.textContent = sold;
+      el.metricStock.textContent = stock;
+      el.metricExpenses.textContent = money.format(expenses);
+    }
+
+    function exportData() {
+      const data = JSON.stringify(state, null, 2);
+      const blob = new Blob([data], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${boothId || "booth-pos"}-${new Date().toISOString().slice(0, 10)}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function renderShell() {
+      const hasBooth = Boolean(boothId);
+      el.lobby.classList.toggle("hidden", hasBooth);
+      el.appShell.classList.toggle("hidden", !hasBooth);
+      el.headerActions.classList.toggle("hidden", !hasBooth);
+
+      if (!hasBooth) {
+        el.headerSubtitle.textContent = "建立一場擺攤，分享連結給合攤夥伴一起記錄。";
+        return;
+      }
+
+      el.headerSubtitle.textContent = `${state.meta?.name || "共編擺攤"} · 代碼 ${boothId}`;
+      el.shareLinkInput.value = boothShareUrl();
+    }
+
+    function render() {
+      renderShell();
+      if (!boothId) return;
+      renderOwnerFilter();
+      renderPosProducts();
+      renderCart();
+      renderInventory();
+      renderExpenses();
+      renderSettlement();
+      renderMetrics();
+    }
+
+    el.productForm.addEventListener("submit", addProduct);
+    el.expenseForm.addEventListener("submit", addExpense);
+    el.checkoutBtn.addEventListener("click", checkout);
+    el.clearCartBtn.addEventListener("click", clearCart);
+    el.posOwnerFilter.addEventListener("change", renderPosProducts);
+    el.exportBtn.addEventListener("click", exportData);
+    el.copyShareBtn.addEventListener("click", copyShareLink);
+    el.leaveBoothBtn.addEventListener("click", leaveBooth);
+    el.createBoothForm.addEventListener("submit", createBooth);
+    el.joinBoothForm.addEventListener("submit", joinBooth);
+    renderTabs();
+    if (boothId) save();
+    render();
+  </script>
+</body>
+</html>
