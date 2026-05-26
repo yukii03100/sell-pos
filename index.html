@@ -133,6 +133,41 @@
       margin: 0;
     }
 
+    .recent-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .recent-booth {
+      align-items: center;
+      background: #fffafb;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      display: grid;
+      gap: 8px;
+      grid-template-columns: minmax(0, 1fr) auto;
+      padding: 12px;
+    }
+
+    .recent-booth strong,
+    .recent-booth span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .recent-booth span {
+      color: var(--muted);
+      display: block;
+      font-size: 13px;
+      margin-top: 4px;
+    }
+
+    .recent-actions {
+      display: flex;
+      gap: 6px;
+    }
+
     .feature-list {
       display: grid;
       gap: 8px;
@@ -601,6 +636,11 @@
           </label>
           <button class="secondary" type="submit">加入擺攤</button>
         </form>
+
+        <section class="lobby-card" id="recentBoothsCard">
+          <h3>最近使用的擺攤</h3>
+          <div class="recent-list" id="recentBoothsList"></div>
+        </section>
       </div>
     </section>
 
@@ -726,6 +766,7 @@
   <script>
     const BASE_STORAGE_KEY = "booth-pos-v2";
     const CURRENT_BOOTH_KEY = "booth-pos-current-booth";
+    const RECENT_BOOTHS_KEY = "booth-pos-recent-booths";
     const boothParams = new URLSearchParams(window.location.search);
     let boothId = boothParams.get("booth") || localStorage.getItem(CURRENT_BOOTH_KEY) || "";
 
@@ -809,7 +850,9 @@
       copyShareBtn: document.getElementById("copyShareBtn"),
       leaveBoothBtn: document.getElementById("leaveBoothBtn"),
       createBoothForm: document.getElementById("createBoothForm"),
-      joinBoothForm: document.getElementById("joinBoothForm")
+      joinBoothForm: document.getElementById("joinBoothForm"),
+      recentBoothsCard: document.getElementById("recentBoothsCard"),
+      recentBoothsList: document.getElementById("recentBoothsList")
     };
 
     function save() {
@@ -849,6 +892,32 @@
       return `<img class="${className}" src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}" />`;
     }
 
+    function recentBooths() {
+      return JSON.parse(localStorage.getItem(RECENT_BOOTHS_KEY) || "[]");
+    }
+
+    function rememberBooth() {
+      if (!boothId) return;
+      const nextBooth = {
+        id: boothId,
+        name: state.meta?.name || "共編擺攤",
+        lastOpenedAt: new Date().toISOString()
+      };
+      const list = recentBooths().filter((booth) => booth.id !== boothId);
+      list.unshift(nextBooth);
+      localStorage.setItem(RECENT_BOOTHS_KEY, JSON.stringify(list.slice(0, 8)));
+    }
+
+    function removeRecentBooth(id) {
+      const list = recentBooths().filter((booth) => booth.id !== id);
+      localStorage.setItem(RECENT_BOOTHS_KEY, JSON.stringify(list));
+      if (id === boothId) {
+        leaveBooth();
+        return;
+      }
+      renderRecentBooths();
+    }
+
     function generateBoothId() {
       const part = crypto.randomUUID().slice(0, 8);
       return `booth-${part}`;
@@ -884,6 +953,7 @@
       state.meta.id = boothId;
       state.meta.name = state.meta.name || name;
       save();
+      rememberBooth();
       render();
     }
 
@@ -1327,11 +1397,34 @@
 
       if (!hasBooth) {
         el.headerSubtitle.textContent = "建立一場擺攤，分享連結給合攤夥伴一起記錄。";
+        renderRecentBooths();
         return;
       }
 
       el.headerSubtitle.textContent = `${state.meta?.name || "共編擺攤"} · 代碼 ${boothId}`;
       el.shareLinkInput.value = boothShareUrl();
+    }
+
+    function renderRecentBooths() {
+      const list = recentBooths();
+      el.recentBoothsCard.classList.toggle("hidden", !list.length);
+      if (!list.length) {
+        el.recentBoothsList.innerHTML = "";
+        return;
+      }
+
+      el.recentBoothsList.innerHTML = list.map((booth) => `
+        <div class="recent-booth">
+          <div>
+            <strong>${escapeHtml(booth.name)}</strong>
+            <span>${escapeHtml(booth.id)} · 上次開啟 ${new Date(booth.lastOpenedAt).toLocaleString("zh-TW")}</span>
+          </div>
+          <div class="recent-actions">
+            <button class="secondary" type="button" onclick="enterBooth('${escapeHtml(booth.id)}')">開啟</button>
+            <button class="danger icon" type="button" onclick="removeRecentBooth('${escapeHtml(booth.id)}')" aria-label="移除">×</button>
+          </div>
+        </div>
+      `).join("");
     }
 
     function render() {
@@ -1357,7 +1450,10 @@
     el.createBoothForm.addEventListener("submit", createBooth);
     el.joinBoothForm.addEventListener("submit", joinBooth);
     renderTabs();
-    if (boothId) save();
+    if (boothId) {
+      save();
+      rememberBooth();
+    }
     render();
   </script>
 </body>
