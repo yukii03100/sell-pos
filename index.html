@@ -77,13 +77,34 @@
     }
 
     footer {
+      align-items: center;
       border-top: 1px solid var(--line);
       color: var(--muted);
+      display: flex;
+      flex-wrap: wrap;
       font-size: 14px;
+      gap: 12px;
+      justify-content: center;
       margin: 0 auto;
       max-width: 1180px;
       padding: 20px;
       text-align: center;
+    }
+
+    .footer-link {
+      background: #fff4f8;
+      border-radius: 6px;
+      color: #a65374;
+      display: inline-flex;
+      font-weight: 700;
+      min-height: 38px;
+      padding: 8px 12px;
+      text-decoration: none;
+    }
+
+    .footer-link.disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
     }
 
     .tabs {
@@ -774,13 +795,15 @@
   </main>
 
   <footer>
-    使用上有問題、想回報錯誤，或有適合擺攤攤主的新功能建議，都可以告訴我們。
+    <span>使用上有問題或想建議功能？歡迎填寫回饋表單。</span>
+    <a class="footer-link disabled" id="feedbackLink" href="#" aria-disabled="true">表單準備中</a>
   </footer>
 
   <script>
     const BASE_STORAGE_KEY = "booth-pos-v2";
     const CURRENT_BOOTH_KEY = "booth-pos-current-booth";
     const RECENT_BOOTHS_KEY = "booth-pos-recent-booths";
+    const FEEDBACK_FORM_URL = "";
     const boothParams = new URLSearchParams(window.location.search);
     let boothId = boothParams.get("booth") || localStorage.getItem(CURRENT_BOOTH_KEY) || "";
 
@@ -866,7 +889,8 @@
       createBoothForm: document.getElementById("createBoothForm"),
       joinBoothForm: document.getElementById("joinBoothForm"),
       recentBoothsCard: document.getElementById("recentBoothsCard"),
-      recentBoothsList: document.getElementById("recentBoothsList")
+      recentBoothsList: document.getElementById("recentBoothsList"),
+      feedbackLink: document.getElementById("feedbackLink")
     };
 
     function save() {
@@ -1420,6 +1444,23 @@
       el.shareLinkInput.value = boothShareUrl();
     }
 
+    function setupFeedbackLink() {
+      if (!FEEDBACK_FORM_URL) {
+        el.feedbackLink.addEventListener("click", (event) => {
+          event.preventDefault();
+          alert("回饋表單準備中，之後會在這裡開放填寫。");
+        });
+        return;
+      }
+
+      el.feedbackLink.href = FEEDBACK_FORM_URL;
+      el.feedbackLink.textContent = "填寫回饋";
+      el.feedbackLink.classList.remove("disabled");
+      el.feedbackLink.removeAttribute("aria-disabled");
+      el.feedbackLink.target = "_blank";
+      el.feedbackLink.rel = "noopener";
+    }
+
     function renderRecentBooths() {
       const list = recentBooths();
       el.recentBoothsCard.classList.toggle("hidden", !list.length);
@@ -1464,6 +1505,7 @@
     el.leaveBoothBtn.addEventListener("click", leaveBooth);
     el.createBoothForm.addEventListener("submit", createBooth);
     el.joinBoothForm.addEventListener("submit", joinBooth);
+    setupFeedbackLink();
     renderTabs();
     if (boothId) {
       save();
